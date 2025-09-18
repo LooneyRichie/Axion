@@ -151,5 +151,19 @@ while (1) {
     }
 }
 ```
-
+## Installation & Usage
+1. Clone the repository:  
+   ```bash
+   git clone https://github.com/Gershom-Benni/Axion.git
+   cd Axion
+2. Install Axion in editable mode:
+    ```bash
+    pip install -e
+3. Create a file with the .ax extension, for example:
+    ```axion
+    // hello.ax
+    logln("Hello, Axion!");
+4. Run your program using the Axion interpreter:
+    ```bash
+    axion run hello.ax
 
