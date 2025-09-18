@@ -17,6 +17,7 @@ It is designed to be **simple, expressive, and beginner-friendly**, with familia
 * Pattern matching (`match` / `switch` style)
 * Comments (`//` and `/* ... */`)
 * Standard Library (`math` module with sqrt, log, gcd, lcm, trigonometry, random, etc.)
+* Supports String Interpolation {Variable name}
 
 ---
 
