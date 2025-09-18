@@ -1,0 +1,248 @@
+//This is the standard math library for Axion, some of the functions might not work as intended
+func square(x) {
+    return x * x;
+}
+
+func cube(x) {
+    return x * x * x;
+}
+func pow(base, exponent) {
+    set result = 1;
+    set exp = exponent;
+    set b = base;
+    loop(i from 0 to exp step 1) {
+        if (exp == 0) then{
+            break;
+        }
+        if (exp % 2 == 1) then{
+            result *= b;
+        }
+        b *= b;
+        exp /= 2;
+        i = 0;
+    }
+    return result;
+}
+func abs(x) {
+    if (x < 0) then{
+        return -x;
+    }
+    return x;
+}
+func factorial(n) {
+    if (n < 0) then{
+        log("Math Error: Factorial not defined for negative numbers");
+        return "";
+    }
+
+    set result = 1;
+    loop(i from 2 to n step 1) {
+        result *= i;
+    }
+    return result;
+}
+func max(a,b){
+    if (a>b) then{
+        return a;
+    }
+    else if (a<b) then{
+        return b;
+    }
+}
+
+func min(a,b){
+    if (a<b) then{
+        return a;
+    }
+    else if (a>b) then{
+        return b;
+    }
+}
+func gcd(a, b) {
+    set x = a;
+    set y = b;
+
+    while (y != 0) {
+        set temp = y;
+        y = x % y;
+        x = temp;
+    }
+
+    return x;
+}
+func lcm(a, b) {
+    if (a == 0 any b == 0) then {
+        return 0;
+    }
+    return abs(a * b) / gcd(a, b);
+}
+
+
+set _rand_state = time_now();
+
+func _xorshift32() {
+    _rand_state = _rand_state ^ (_rand_state << 13);
+    _rand_state = _rand_state ^ (_rand_state >> 17);
+    _rand_state = _rand_state ^ (_rand_state << 5);
+    return _rand_state;
+}
+
+func rand(min, max) {
+    set r = _xorshift32();
+    if (r < 0) then { 
+        r = -r;
+    }
+    return (r % (max - min + 1)) + min;
+}
+
+func sqrt(x) {
+    set guess = x / 2;
+    loop(i from 0 to 10 step 1) {
+        guess = (guess + x / guess) / 2;
+    }
+    return guess;
+}
+
+func floor(x) {
+    set xi = x - (x % 1);
+    if (x < 0 both (x % 1) != 0) then {
+        xi = xi - 1;
+    }
+    return xi;
+}
+
+func ceil(x) {
+    set xi = x - (x % 1);
+    if (x > 0 both (x % 1) != 0) then {
+        xi = xi + 1;
+    }
+    return xi;
+}
+
+func round(x) {
+    set f = floor(x);
+    set diff = x - f;
+    if (diff >= 0.5) then {
+        return f + 1;
+    }
+    return f;
+}
+
+
+func ln(x) {
+    if (x <= 0) then {
+        log("Math Error: ln not defined for non-positive numbers");
+        return "";
+    }
+
+    set y = (x - 1) / (x + 1);
+    set y2 = y * y;
+
+    set result = 0;
+    set term = y;
+    set i = 1;
+
+    loop(k from 0 to 1000 step 1) { 
+        set add = term / i;
+        result += add;
+
+        if (abs(add) < 0.000001) then {  
+            break;
+        }
+
+        term = term * y2;
+        i += 2;
+    }
+
+    return 2 * result;
+}
+
+func LOG(x, base) {
+    set ln_x = ln(x);
+    set ln_b = ln(base);
+
+    if (ln_b == 0) then {
+        log("Math Error: Invalid base for log");
+        return "";
+    }
+
+    return round(ln_x / ln_b);
+}
+
+func exp(x) {
+    set sum = 1.0;
+    set term = 1.0;
+    set i = 1;
+
+    while (abs(term) > 0.000001) {
+        term = term * x / i;
+        sum += term;
+        i += 1;
+    }
+
+    return sum;
+}
+func PI() {
+    return 3.141592653589793;
+}
+
+func normalize_angle(x) {
+    x = x % (2 * PI());
+    if (x < 0) then {
+        x = x + 2 * pi();
+    }
+    return x;
+}
+
+
+func sin(x) {
+    x = normalize_angle(x);
+    set term = x;
+    set sum = term;
+    set n = 1;
+    set epsilon = 0.0000000001; 
+
+    while(1) { 
+        term = -term * x * x / ((2 * n) * (2 * n + 1));
+        if (abs(term) < epsilon) then {
+            break;
+        }
+        sum += term;
+        n += 1;
+    }
+    return sum;
+}
+
+func cos(x) {
+    x = normalize_angle(x);
+    set term = 1;
+    set sum = term;
+    set n = 1;
+    set epsilon = 0.0000000001;
+
+    while(1) {
+        term = -term * x * x / ((2 * n - 1) * (2 * n));
+        if (abs(term) < epsilon) then {
+            break;
+        }
+        sum += term;
+        n += 1;
+    }
+    return sum;
+}
+
+
+func tan(x) {
+    return sin(x) / cos(x);
+}
+
+func length(x) {
+    set count = 0;
+    while (1) {
+        if (x[count] == "") then {
+            break;
+        }
+        count += 1;
+    }
+    return count;
+}
