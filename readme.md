@@ -152,9 +152,4 @@ while (1) {
 }
 ```
 
-## License
-
-MIT License – free to use, modify, and distribute.
-
----
 
