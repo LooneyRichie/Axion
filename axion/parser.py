@@ -1,25 +1,45 @@
+from axion.lexer import Token
+from typing import List, Dict, Any, Optional
+
+class ParseError(Exception):
+    """Custom exception for parsing errors with position information."""
+    def __init__(self, message: str, token: Optional[Token] = None):
+        if token:
+            super().__init__(f"{message} at line {token.line}, column {token.column}")
+            self.line = token.line
+            self.column = token.column
+        else:
+            super().__init__(message)
+            self.line = None
+            self.column = None
+
 class parser:
-    def __init__(self, tokens):
+    def __init__(self, tokens: List[Token]):
         self.tokens = tokens
         self.pos = 0
     
-    def current(self):
-        return self.tokens[self.pos] if self.pos < len(self.tokens) else ('None', 'None')
+    def current(self) -> Token:
+        """Get the current token."""
+        if self.pos < len(self.tokens):
+            return self.tokens[self.pos]
+        # Return a dummy EOF token
+        return Token('EOF', 'EOF', 0, 0)
     
-    def match(self, expected):
-        token, token_type = self.current()
-        if token == expected or token_type == expected:
+    def match(self, expected: str) -> str:
+        """Match and consume a token."""
+        token = self.current()
+        if token.value == expected or token.type == expected:
             self.pos += 1
-            return token
-        raise SyntaxError(f"Expected {expected}, got {token}")
+            return token.value
+        raise ParseError(f"Expected {expected}, got {token.value}", token)
     
     def parse_expression(self):
         return self.parse_assignment()
 
     def parse_assignment(self):
         expr = self.parse_logical()
-        if self.current()[0] in ["=", "+=", "-=", "*=", "/=", "%="]:
-            op = self.match(self.current()[0])
+        if self.current().value in ["=", "+=", "-=", "*=", "/=", "%="]:
+            op = self.match(self.current().value)
             value = self.parse_expression()
             return {
                 "type": "Assignment",
@@ -31,128 +51,125 @@ class parser:
 
     def parse_logical(self):
         expr = self.parse_equality()
-        while self.current()[0] in ["both", "any"]:
-            op = self.match(self.current()[0])
+        while self.current().value in ["both", "any"]:
+            op = self.match(self.current().value)
             right = self.parse_equality()
             expr = {"type": "BinaryOp", "op": op, "left": expr, "right": right}
         return expr
 
     def parse_equality(self):
         expr = self.parse_comparison()
-        while self.current()[0] in ["==", "!="]:
-            op = self.match(self.current()[0])
+        while self.current().value in ["==", "!="]:
+            op = self.match(self.current().value)
             right = self.parse_comparison()
             expr = {"type": "BinaryOp", "op": op, "left": expr, "right": right}
         return expr
 
     def parse_comparison(self):
-        # expr = self.parse_additive()
         expr = self.parse_bitwise()
-        while self.current()[0] in ["<", "<=", ">", ">="]:
-            op = self.match(self.current()[0])
+        while self.current().value in ["<", "<=", ">", ">="]:
+            op = self.match(self.current().value)
             right = self.parse_additive()
             expr = {"type": "BinaryOp", "op": op, "left": expr, "right": right}
         return expr
     def parse_shift(self):
         expr = self.parse_multiplicative()
-        while self.current()[0] in ["<<", ">>"]:
-            op = self.match(self.current()[0])
+        while self.current().value in ["<<", ">>"]:
+            op = self.match(self.current().value)
             right = self.parse_multiplicative()
             expr = {"type": "BinaryOp", "op": op, "left": expr, "right": right}
         return expr
 
     def parse_bitwise(self):
         expr = self.parse_additive()
-        while self.current()[0] in ["&", "|", "^","<<",">>"]:
-            op = self.match(self.current()[0])
+        while self.current().value in ["&", "|", "^","<<",">>"]:
+            op = self.match(self.current().value)
             right = self.parse_additive()
             expr = {"type": "BinaryOp", "op": op, "left": expr, "right": right}
         return expr
 
-
     def parse_additive(self):
-        # expr = self.parse_multiplicative()
         expr = self.parse_shift()
-        while self.current()[0] in ["+", "-"]:
-            op = self.match(self.current()[0])
+        while self.current().value in ["+", "-"]:
+            op = self.match(self.current().value)
             right = self.parse_multiplicative()
             expr = {"type": "BinaryOp", "op": op, "left": expr, "right": right}
         return expr
 
     def parse_multiplicative(self):
         expr = self.parse_unary()
-        while self.current()[0] in ["*", "/", "%"]:
-            op = self.match(self.current()[0])
+        while self.current().value in ["*", "/", "%"]:
+            op = self.match(self.current().value)
             right = self.parse_unary()
             expr = {"type": "BinaryOp", "op": op, "left": expr, "right": right}
         return expr
 
     def parse_unary(self):
-        if self.current()[0] in ["invert", "~","-"]:
-            op = self.match(self.current()[0])
+        if self.current().value in ["invert", "~","-"]:
+            op = self.match(self.current().value)
             right = self.parse_unary()
             return {"type": "UnaryOp", "op": op, "expr": right}
         return self.parse_primary()
 
     def parse_primary(self):
-        token, token_type = self.current()
+        token = self.current()
 
-        if token_type == "NUMBER":
+        if token.type == "NUMBER":
             self.match("NUMBER")
-            return {"type": "NUMBER", "value": token}
+            return {"type": "NUMBER", "value": token.value}
 
-        elif token_type == "STRING":
+        elif token.type == "STRING":
             self.match("STRING")
-            return {"type": "STRING", "value": token.strip('"').strip("'")}
+            return {"type": "STRING", "value": token.value.strip('"').strip("'")}
 
-        elif token_type == "IDENTIFIER":
+        elif token.type == "IDENTIFIER":
             node = {"type": "IDENTIFIER", "value": self.match("IDENTIFIER")}
 
-            while self.current()[0] in ["[", ".", "("]:
-                if self.current()[0] == "[":
+            while self.current().value in ["[", ".", "("]:
+                if self.current().value == "[":
                     self.match("[")
                     index_expr = self.parse_expression()
                     self.match("]")
                     node = {"type": "Index", "target": node, "index": index_expr}
 
-                elif self.current()[0] == ".":
+                elif self.current().value == ".":
                     self.match(".")
                     prop = self.match("IDENTIFIER")
                     node = {"type": "MemberAccess", "object": node, "property": prop}
 
-                elif self.current()[0] == "(":
+                elif self.current().value == "(":
                     self.match("(")
-                    args = self.parse_elements() if self.current()[0] != ")" else []
+                    args = self.parse_elements() if self.current().value != ")" else []
                     self.match(")")
                     node = {"type": "Call", "callee": node, "args": args}
 
             return node
 
-
-        elif token == "(":
+        elif token.value == "(":
             self.match("(")
             expr = self.parse_expression()
             self.match(")")
             return expr
 
-        elif token == "[":
+        elif token.value == "[":
             return self.parse_array()
 
         else:
-            raise SyntaxError(f"Unexpected token in expression: {self.current()}")
+            raise ParseError(f"Unexpected token in expression: {token.value}", token)
 
     def parse_array(self):
         self.match("[")
-        elements = self.parse_elements() if self.current()[0] != "]" else []
+        elements = self.parse_elements() if self.current().value != "]" else []
         self.match("]")
         return {"type": "ArrayLiteral", "elements": elements}
 
     def parse_elements(self):
         elements = [self.parse_expression()]
-        while self.current()[0] == ",":
+        while self.current().value == ",":
             self.match(",")
             elements.append(self.parse_expression())
         return elements
+        
     def parse_include(self):
         self.match("include")
         path_token = self.match("STRING")
@@ -163,7 +180,7 @@ class parser:
         }
 
     def parse_io(self):
-        if self.current()[0] == "log":
+        if self.current().value == "log":
             self.match("log")
             self.match("(")
             expr = self.parse_expression()
@@ -174,24 +191,24 @@ class parser:
                 "action": "log",
                 "expr": expr
             }
-        elif    self.current()[0] == "logln":
-                self.match("logln")
-                self.match("(")
-                expr = self.parse_expression()
-                self.match(")")
-                self.match(";")
-                return {
-                    "type": "IO",
-                    "action": "logln",
-                    "expr": expr
-                }
+        elif self.current().value == "logln":
+            self.match("logln")
+            self.match("(")
+            expr = self.parse_expression()
+            self.match(")")
+            self.match(";")
+            return {
+                "type": "IO",
+                "action": "logln",
+                "expr": expr
+            }
 
-        elif self.current()[0] == "input":
+        elif self.current().value == "input":
             self.match("input")
             self.match("(")
             target = self.parse_expression()
             message = ""
-            if self.current()[0] == ",":
+            if self.current().value == ",":
                 self.match(",")
                 tok = self.match("STRING")
                 if (tok.startswith('"') and tok.endswith('"')) or (tok.startswith("'") and tok.endswith("'")):
@@ -208,9 +225,8 @@ class parser:
                 "message": message
             }
 
-
         else:
-            raise SyntaxError(f"Unexpected I/O statement at {self.current()}")
+            raise ParseError(f"Unexpected I/O statement: {self.current().value}", self.current())
 
 
     def parse_return(self):
@@ -244,8 +260,8 @@ class parser:
         cases = []
         else_case = None
 
-        while self.current()[0] not in ["}"]:
-            if self.current()[0] == "else":
+        while self.current().value not in ["}"]:
+            if self.current().value == "else":
                 else_case = self.parse_case(is_else=True)
             else:
                 cases.append(self.parse_case())
@@ -326,26 +342,26 @@ class parser:
         self.match(")")
         self.match("then")
 
-        if self.current()[0] == "{":
+        if self.current().value == "{":
             body = self.parse_block()
         else:
             body = [self.parse_statement()]
 
         elseifs = []
-        while self.current()[0] == "else" and self.tokens[self.pos+1][0] == "if":
+        while self.current().value == "else" and self.pos + 1 < len(self.tokens) and self.tokens[self.pos+1].value == "if":
             self.match("else")
             self.match("if")
             self.match("(")
             cond = self.parse_expression()
             self.match(")")
             self.match("then")
-            blk = self.parse_block() if self.current()[0] == "{" else [self.parse_statement()]
+            blk = self.parse_block() if self.current().value == "{" else [self.parse_statement()]
             elseifs.append({"condition": cond, "body": blk})
 
         else_block = None
-        if self.current()[0] == "else":
+        if self.current().value == "else":
             self.match("else")
-            else_block = self.parse_block() if self.current()[0] == "{" else [self.parse_statement()]
+            else_block = self.parse_block() if self.current().value == "{" else [self.parse_statement()]
 
         return {
             "type": "IfStatement",
@@ -372,10 +388,10 @@ class parser:
 
     def parse_params(self):
         params = []
-        token, token_type = self.current()
-        if token_type == "IDENTIFIER":
+        token = self.current()
+        if token.type == "IDENTIFIER":
             params.append(self.match("IDENTIFIER"))
-            while self.current()[0] == ",":
+            while self.current().value == ",":
                 self.match(",")
                 params.append(self.match("IDENTIFIER"))
         return params
@@ -383,17 +399,16 @@ class parser:
     def parse_block(self):
         self.match("{")
         statements = []
-        while self.current()[0] != "}":
+        while self.current().value != "}":
             statements.append(self.parse_statement())
         self.match("}")
         return statements
-
 
     def parse_var_decl(self):
         self.match("set")
         name = self.match("IDENTIFIER")
         value = None
-        if self.current()[0] == "=": 
+        if self.current().value == "=": 
             self.match("=")
             value = self.parse_expression()
         self.match(";")
@@ -407,7 +422,7 @@ class parser:
         self.match("const")
         name = self.match("IDENTIFIER")
         value = None
-        if self.current()[0] == "=": 
+        if self.current().value == "=": 
             self.match("=")
             value = self.parse_expression()
         self.match(";")
@@ -418,32 +433,32 @@ class parser:
         }
 
     def parse_statement(self):
-        token, token_type = self.current()
-        if token == "set":
+        token = self.current()
+        if token.value == "set":
             return self.parse_var_decl()
-        elif token == "const":
+        elif token.value == "const":
             return self.parse_const_decl()
-        elif token == "func":
+        elif token.value == "func":
             return self.parse_func_decl()
-        elif token == "if":
+        elif token.value == "if":
             return self.parse_if()
-        elif token == "loop":
+        elif token.value == "loop":
             return self.parse_loop()
-        elif token == "while":
+        elif token.value == "while":
             return self.parse_while()
-        elif token == "repeat":
+        elif token.value == "repeat":
             return self.parse_do_while()
-        elif token == "match":
+        elif token.value == "match":
             return self.parse_match()
-        elif token == "return":
+        elif token.value == "return":
             return self.parse_return()
-        elif token in ("log", "input","logln"):
+        elif token.value in ("log", "input","logln"):
             return self.parse_io()
-        elif token == "break":
+        elif token.value == "break":
             return self.parse_break()
-        elif token == "skip":
+        elif token.value == "skip":
             return self.parse_skip()
-        elif token == "include":
+        elif token.value == "include":
             return self.parse_include()
         else:
             expr = self.parse_expression()

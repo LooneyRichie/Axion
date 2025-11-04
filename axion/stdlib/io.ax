@@ -1,0 +1,111 @@
+//I/O utilities library for Axion
+//Provides enhanced input/output operations
+
+func print_array(arr) {
+    log("[");
+    loop(i from 0 to length(arr) - 1 step 1) {
+        log(arr[i]);
+        if (i < length(arr) - 1) then {
+            log(", ");
+        }
+    }
+    logln("]");
+}
+
+func print_matrix(matrix) {
+    // Print 2D array in matrix format
+    loop(i from 0 to length(matrix) - 1 step 1) {
+        print_array(matrix[i]);
+    }
+}
+
+func input_number(prompt) {
+    // Get numeric input with validation
+    while (1) {
+        set temp_input;
+        input(temp_input, prompt);
+        
+        // Try to convert to number
+        // This is simplified - would need better number parsing
+        if (temp_input == "0") then {
+            return 0;
+        }
+        
+        // For demo, assume valid number input
+        return temp_input;
+    }
+}
+
+func input_yes_no(prompt) {
+    // Get yes/no input
+    while (1) {
+        set answer;
+        input(answer, prompt + " (y/n): ");
+        
+        if (answer == "y" any answer == "Y" any answer == "yes" any answer == "Yes") then {
+            return 1;
+        } else if (answer == "n" any answer == "N" any answer == "no" any answer == "No") then {
+            return 0;
+        } else {
+            logln("Please enter y or n");
+        }
+    }
+}
+
+func repeat_char(char, count) {
+    // Create string with repeated character
+    set result = "";
+    loop(i from 0 to count - 1 step 1) {
+        result = result + char;
+    }
+    return result;
+}
+
+func print_line(char, length) {
+    // Print a line of characters
+    logln(repeat_char(char, length));
+}
+
+func print_header(title) {
+    // Print formatted header
+    set line_length = 50;
+    print_line("=", line_length);
+    set padding = (line_length - strlen(title)) / 2;
+    log(repeat_char(" ", padding));
+    logln(title);
+    print_line("=", line_length);
+}
+
+func print_table_row(columns) {
+    // Print table row with columns
+    log("| ");
+    loop(i from 0 to length(columns) - 1 step 1) {
+        log(columns[i]);
+        log(" | ");
+    }
+    logln("");
+}
+
+func print_separator(num_columns, col_width) {
+    // Print table separator
+    log("+");
+    loop(i from 0 to num_columns - 1 step 1) {
+        log(repeat_char("-", col_width));
+        log("+");
+    }
+    logln("");
+}
+
+func format_number(num, decimals) {
+    // Simple number formatting (placeholder)
+    // Would need proper number formatting in interpreter
+    return num;
+}
+
+func debug_print(label, value) {
+    // Debug printing with label
+    log("[DEBUG] ");
+    log(label);
+    log(": ");
+    logln(value);
+}

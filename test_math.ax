@@ -1,0 +1,25 @@
+include "math";
+
+// Test improved math functions
+logln("=== Testing Axion Math Library ===");
+
+// Test basic functions
+logln("Square of 5: {math.square(5)}");
+logln("Cube of 3: {math.cube(3)}");
+logln("Power 2^8: {math.pow(2, 8)}");
+logln("Absolute value of -10: {math.abs(-10)}");
+
+// Test constants
+logln("PI: {math.PI()}");
+logln("E: {math.E()}");
+
+// Test trigonometry
+logln("Sin(PI/2): {math.sin(math.PI() / 2)}");
+logln("Cos(0): {math.cos(0)}");
+
+// Test other functions
+logln("Max of 10, 20: {math.max(10, 20)}");
+logln("Min of 10, 20: {math.min(10, 20)}");
+logln("Factorial of 5: {math.factorial(5)}");
+
+logln("=== Math tests completed ===");

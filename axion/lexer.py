@@ -1,13 +1,34 @@
+import re
+from dataclasses import dataclass
+from typing import List, Tuple
+
+@dataclass
+class Token:
+    """Represents a token with position information for better error reporting."""
+    value: str
+    type: str
+    line: int
+    column: int
+
 def token_identification(token):
-    keywords = {'if', 'else', 'while', 'return', 'func', 'set', 'const', 'then', 'loop', 'from', 'to', 'step', 'do', 'match', 'case', 'default', 'break', 'repeat', 'input', 'log','logln','skip','include'}
-    operators = {'+', '-', '*', '/', '=','%', '==', '!=', '<', '>', '<=', '>=', 'both', 'any', 'invert', '+=', '-=', '*=', '/=', '%=', '->','&','|','^','<<','>>','~'}
+    """Identify the type of a token."""
+    keywords = {
+        'if', 'else', 'while', 'return', 'func', 'set', 'const', 'then', 
+        'loop', 'from', 'to', 'step', 'do', 'match', 'case', 'default', 
+        'break', 'repeat', 'input', 'log', 'logln', 'skip', 'include'
+    }
+    operators = {
+        '+', '-', '*', '/', '=', '%', '==', '!=', '<', '>', '<=', '>=', 
+        'both', 'any', 'invert', '+=', '-=', '*=', '/=', '%=', '->', 
+        '&', '|', '^', '<<', '>>', '~'
+    }
     punctuation = {'.', ',', ';', '(', ')', '{', '}', '[', ']'}
 
     if token in keywords:
         return 'KEYWORD'
     elif token.isidentifier():
         return 'IDENTIFIER'
-    elif token.isdigit():
+    elif token.replace('.', '', 1).isdigit():  # Handle floats
         return 'NUMBER'
     elif (token.startswith('"') and token.endswith('"')) or (token.startswith("'") and token.endswith("'")):
         return 'STRING'
@@ -18,32 +39,58 @@ def token_identification(token):
     else:
         return 'UNKNOWN'
 
-
-def tokenization(source_code):
-    import re
-    token_pattern = r'\s*(?:(\d+(\.\d+)?)|([a-zA-Z_]\w*)|(".*?")|(\'.*?\')|(<<=|>>=|<<|>>|<=|>=|==|!=|both|any|invert|[+\-*/%=<>!&|^~]+)|([.,;(){}\[\]]))'
+def tokenization(source_code: str) -> List[Token]:
+    """
+    Tokenize source code with position tracking for better error reporting.
+    
+    Args:
+        source_code: The source code to tokenize
+        
+    Returns:
+        List of Token objects with position information
+    """
+    # Enhanced regex pattern with better number handling and comment support
+    token_pattern = r'''
+        (?P<COMMENT>//.*?(?=\n|$)|/\*.*?\*/)              |  # Comments
+        (?P<NUMBER>\d+(?:\.\d+)?)                          |  # Numbers (int/float)
+        (?P<IDENTIFIER>[a-zA-Z_]\w*)                       |  # Identifiers
+        (?P<STRING>"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')    |  # Strings
+        (?P<OPERATOR><<=|>>=|<<|>>|<=|>=|==|!=|both|any|invert|[+\-*/%=<>!&|^~]+) |  # Operators
+        (?P<PUNCTUATION>[.,;(){}\[\]])                     |  # Punctuation
+        (?P<WHITESPACE>\s+)                                |  # Whitespace
+        (?P<ERROR>.)                                          # Any other character
+    '''
+    
     tokens = []
-
-    for match in re.finditer(token_pattern, source_code):
-        groups = match.groups()
-        number = groups[0]
-        identifier = groups[2]
-        double_quoted = groups[3]
-        single_quoted = groups[4]
-        operator = groups[5]
-        punct = groups[6]
-        if number:
-            tokens.append((number, 'NUMBER'))
-        elif identifier:
-            token_type = token_identification(identifier)
-            tokens.append((identifier, token_type))
-        elif double_quoted:
-            tokens.append((double_quoted, 'STRING'))
-        elif single_quoted:
-            tokens.append((single_quoted, 'STRING'))
-        elif operator:
-            tokens.append((operator, 'OPERATOR'))
-        elif punct:
-            tokens.append((punct, 'PUNCTUATION'))
-
+    line_num = 1
+    line_start = 0
+    
+    for match in re.finditer(token_pattern, source_code, re.VERBOSE | re.DOTALL):
+        kind = match.lastgroup
+        value = match.group()
+        column = match.start() - line_start + 1
+        
+        if kind == 'WHITESPACE':
+            # Count newlines to track line numbers
+            if '\n' in value:
+                line_num += value.count('\n')
+                line_start = match.end() - len(value.split('\n')[-1])
+            continue
+        elif kind == 'COMMENT':
+            # Skip comments but track newlines
+            if '\n' in value:
+                line_num += value.count('\n')
+                line_start = match.end() - len(value.split('\n')[-1])
+            continue
+        elif kind == 'ERROR':
+            raise SyntaxError(f"Unexpected character '{value}' at line {line_num}, column {column}")
+        
+        # Determine the actual token type
+        if kind == 'IDENTIFIER':
+            token_type = token_identification(value)
+        else:
+            token_type = kind
+            
+        tokens.append(Token(value, token_type, line_num, column))
+    
     return tokens

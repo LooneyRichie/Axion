@@ -1,6 +1,17 @@
 import os
 import importlib.resources
 import time
+from axion.lexer import Token
+
+class RuntimeError(Exception):
+    """Custom runtime error with position information."""
+    def __init__(self, message: str, line: int = None, column: int = None):
+        if line and column:
+            super().__init__(f"{message} at line {line}, column {column}")
+        else:
+            super().__init__(message)
+        self.line = line
+        self.column = column
 
 class Env:
     def __init__(self, parent=None):

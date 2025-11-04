@@ -1,0 +1,138 @@
+//Array utilities library for Axion
+//Provides common array operations
+
+func push(arr, element) {
+    set len = length(arr);
+    arr[len] = element;
+    return arr;
+}
+
+func pop(arr) {
+    set len = length(arr);
+    if (len == 0) then {
+        logln("Error: Cannot pop from empty array");
+        return "";
+    }
+    set last = arr[len - 1];
+    arr[len - 1] = ""; // Mark as empty - simplified removal
+    return last;
+}
+
+func indexOf(arr, element) {
+    loop(i from 0 to length(arr) - 1 step 1) {
+        if (arr[i] == element) then {
+            return i;
+        }
+    }
+    return -1; // Not found
+}
+
+func contains(arr, element) {
+    return indexOf(arr, element) != -1;
+}
+
+func reverse(arr) {
+    set len = length(arr);
+    set result = [];
+    loop(i from len - 1 to 0 step -1) {
+        push(result, arr[i]);
+    }
+    return result;
+}
+
+func slice(arr, start, end) {
+    set result = [];
+    loop(i from start to end - 1 step 1) {
+        if (i >= 0 both i < length(arr)) then {
+            push(result, arr[i]);
+        }
+    }
+    return result;
+}
+
+func sort_numbers(arr) {
+    // Simple bubble sort for numbers
+    set len = length(arr);
+    set result = [];
+    
+    // Copy array
+    loop(i from 0 to len - 1 step 1) {
+        push(result, arr[i]);
+    }
+    
+    // Bubble sort
+    loop(i from 0 to len - 1 step 1) {
+        loop(j from 0 to len - 2 - i step 1) {
+            if (result[j] > result[j + 1]) then {
+                set temp = result[j];
+                result[j] = result[j + 1];
+                result[j + 1] = temp;
+            }
+        }
+    }
+    return result;
+}
+
+func filter_greater(arr, threshold) {
+    set result = [];
+    loop(i from 0 to length(arr) - 1 step 1) {
+        if (arr[i] > threshold) then {
+            push(result, arr[i]);
+        }
+    }
+    return result;
+}
+
+func sum(arr) {
+    set total = 0;
+    loop(i from 0 to length(arr) - 1 step 1) {
+        total += arr[i];
+    }
+    return total;
+}
+
+func average(arr) {
+    set len = length(arr);
+    if (len == 0) then {
+        return 0;
+    }
+    return sum(arr) / len;
+}
+
+func map_square(arr) {
+    // Example mapping function - square all numbers
+    set result = [];
+    loop(i from 0 to length(arr) - 1 step 1) {
+        push(result, arr[i] * arr[i]);
+    }
+    return result;
+}
+
+func fill(size, value) {
+    // Create array filled with value
+    set result = [];
+    loop(i from 0 to size - 1 step 1) {
+        push(result, value);
+    }
+    return result;
+}
+
+func range(start, end, step) {
+    // Create array with range of numbers
+    set result = [];
+    if (step == 0) then {
+        logln("Error: Step cannot be zero");
+        return result;
+    }
+    
+    if (step > 0) then {
+        loop(i from start to end - 1 step step) {
+            push(result, i);
+        }
+    } else {
+        loop(i from start to end + 1 step step) {
+            push(result, i);
+        }
+    }
+    return result;
+}

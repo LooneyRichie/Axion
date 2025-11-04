@@ -7,19 +7,25 @@ func cube(x) {
     return x * x * x;
 }
 func pow(base, exponent) {
+    if (exponent == 0) then {
+        return 1;
+    }
+    if (exponent < 0) then {
+        logln("Error: Negative exponents not supported in pow function");
+        return 0;
+    }
+    
     set result = 1;
     set exp = exponent;
     set b = base;
-    loop(i from 0 to exp step 1) {
-        if (exp == 0) then{
-            break;
-        }
-        if (exp % 2 == 1) then{
+    
+    // Fast exponentiation by squaring
+    while (exp > 0) {
+        if (exp % 2 == 1) then {
             result *= b;
         }
         b *= b;
         exp /= 2;
-        i = 0;
     }
     return result;
 }
@@ -45,7 +51,7 @@ func max(a,b){
     if (a>b) then{
         return a;
     }
-    else if (a<b) then{
+    else {
         return b;
     }
 }
@@ -54,7 +60,7 @@ func min(a,b){
     if (a<b) then{
         return a;
     }
-    else if (a>b) then{
+    else {
         return b;
     }
 }
@@ -186,10 +192,14 @@ func PI() {
     return 3.141592653589793;
 }
 
+func E() {
+    return 2.718281828459045;
+}
+
 func normalize_angle(x) {
     x = x % (2 * PI());
     if (x < 0) then {
-        x = x + 2 * pi();
+        x = x + 2 * PI();
     }
     return x;
 }
@@ -245,4 +255,42 @@ func length(x) {
         count += 1;
     }
     return count;
+}
+
+// Additional mathematical functions
+
+func radians(degrees) {
+    return degrees * PI() / 180;
+}
+
+func degrees(radians) {
+    return radians * 180 / PI();
+}
+
+func clamp(value, min_val, max_val) {
+    if (value < min_val) then {
+        return min_val;
+    } else if (value > max_val) then {
+        return max_val;
+    } else {
+        return value;
+    }
+}
+
+func sign(x) {
+    if (x > 0) then {
+        return 1;
+    } else if (x < 0) then {
+        return -1;
+    } else {
+        return 0;
+    }
+}
+
+func fmod(x, y) {
+    if (y == 0) then {
+        logln("Error: Division by zero in fmod");
+        return 0;
+    }
+    return x - (floor(x / y) * y);
 }

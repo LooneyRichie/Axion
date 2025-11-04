@@ -1,0 +1,75 @@
+//String manipulation library for Axion
+//Provides common string operations
+
+func strlen(str) {
+    set count = 0;
+    set s = str;
+    while (1) {
+        // In Axion, we'll need to check if we can access the character
+        // This is a simplified version - real implementation would need
+        // better string handling in the interpreter
+        if (s == "") then {
+            break;
+        }
+        count += 1;
+        // This is pseudo-code - would need proper string indexing
+        break; // For now, just return a placeholder
+    }
+    return count;
+}
+
+func substr(str, start, length) {
+    // Placeholder for substring function
+    // Would need proper string manipulation in interpreter
+    logln("substr function not fully implemented yet");
+    return str;
+}
+
+func toUpper(str) {
+    // Placeholder for uppercase conversion
+    logln("toUpper function not fully implemented yet");  
+    return str;
+}
+
+func toLower(str) {
+    // Placeholder for lowercase conversion
+    logln("toLower function not fully implemented yet");
+    return str;
+}
+
+func trim(str) {
+    // Placeholder for string trimming
+    logln("trim function not fully implemented yet");
+    return str;
+}
+
+func contains(str, substr) {
+    // Placeholder for substring search
+    logln("contains function not fully implemented yet");
+    return 0;
+}
+
+func replace(str, old, new) {
+    // Placeholder for string replacement
+    logln("replace function not fully implemented yet");
+    return str;
+}
+
+func split(str, delimiter) {
+    // Placeholder for string splitting
+    logln("split function not fully implemented yet");
+    return [str];
+}
+
+func join(array, delimiter) {
+    // Join array elements with delimiter
+    if (length(array) == 0) then {
+        return "";
+    }
+    
+    set result = array[0];
+    loop(i from 1 to length(array) - 1 step 1) {
+        result = result + delimiter + array[i];
+    }
+    return result;
+}
